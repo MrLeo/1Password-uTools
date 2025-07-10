@@ -20,7 +20,7 @@ const handleOpenDialog = () => {
   try {
     const content = window.services.readFile(_filePath)
     fileContent.value = content
-  } catch (err) {
+  } catch (err: any) {
     error.value = err.message
     fileContent.value = ''
   }
@@ -29,15 +29,15 @@ const handleOpenDialog = () => {
 watch(
   () => appStore.enterAction,
   (enterAction) => {
-    if (enterAction.type === 'files') {
+    if (enterAction?.type === 'files') {
       // 匹配文件进入，直接读取文件
-      const _filePath = enterAction.payload[0].path
+      const _filePath = (enterAction.payload as { path: string }[])[0].path
 
       filePath.value = _filePath
       try {
         const content = window.services.readFile(_filePath)
         fileContent.value = content
-      } catch (err) {
+      } catch (err: any) {
         error.value = err.message
         fileContent.value = ''
       }

@@ -9,10 +9,10 @@ watch(
   (enterAction) => {
     let outputPath
     try {
-      if (enterAction.type === 'over') {
-        outputPath = window.services.writeTextFile(enterAction.payload)
-      } else if (enterAction.type === 'img') {
-        outputPath = window.services.writeImageFile(enterAction.payload)
+      if (enterAction?.type === 'over') {
+        outputPath = window.services.writeTextFile(enterAction.payload as string)
+      } else if (enterAction?.type === 'img') {
+        outputPath = window.services.writeImageFile(enterAction.payload as string)
       }
     } catch (err) {
       // 写入错误弹出通知
