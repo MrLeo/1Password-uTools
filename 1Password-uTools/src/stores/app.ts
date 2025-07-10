@@ -12,7 +12,7 @@ export const useAppStore = defineStore('app', () => {
       route.value = action.code
       enterAction.value = action
     })
-    window.utools.onPluginOut((isKill) => {
+    window.utools.onPluginOut((_isKill: boolean) => {
       route.value = ''
     })
   })
