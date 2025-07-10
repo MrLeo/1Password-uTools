@@ -8,10 +8,7 @@ const appStore = useAppStore()
   <div class="hello">
     <h1>你好，Hello</h1>
     <h2>插件应用进入参数</h2>
-    <pre>
-        {{ JSON.stringify(appStore.enterAction, undefined, 2) }}
-      </pre
-    >
+    <pre>{{ JSON.stringify(appStore.enterAction, undefined, 2) }}</pre>
   </div>
 </template>
 

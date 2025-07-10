@@ -1,6 +1,6 @@
+import type { RouteLocationNormalized } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
-
-import Hello from '../views/Hello/index.vue'
+import { useAppStore } from '../stores/app'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,19 +8,33 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Hello,
+      component: () => import('../views/Hello/index.vue'),
     },
     {
-      path: '/read',
-      name: 'read',
-      component: () => import('../views/Read/index.vue'),
+      path: '/item-list',
+      name: 'item-list',
+      component: () => import('../views/PasswordItems/index.vue'),
     },
     {
-      path: '/write',
-      name: 'write',
-      component: () => import('../views/Write/index.vue'),
+      path: '/vault-list',
+      name: 'vault-list',
+      component: () => import('../views/Vaults/index.vue'),
+    },
+    {
+      path: '/generate-password',
+      name: 'generate-password',
+      component: () => import('../views/GeneratePassword/index.vue'),
     },
   ],
+})
+
+router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
+  const appStore = useAppStore()
+
+  // If the route matches a feature code, use that route
+  if (appStore.route && to.path === '/') {
+    return { path: `/${appStore.route}` }
+  }
 })
 
 export default router

@@ -1,46 +1,26 @@
 {
-  "main": "index.html",
+  "$schema": "./node_modules/utools-api-types/resource/utools.schema.json",
   "preload": "preload/services.js",
   "logo": "logo.png",
+  "main": "index.html",
   "development": {
     "main": "http://localhost:5173"
   },
   "features": [
     {
-      "code": "hello",
-      "explain": "这是插件应用的第一个功能",
-      "cmds": [
-        "你好",
-        "hello"
-      ]
+      "code": "item-list",
+      "explain": "查看所有1Password密码项目",
+      "cmds": ["1Password", "密码", "1p"]
     },
     {
-      "code": "read",
-      "explain": "功能指令+匹配指令示例，使用 node.js 能力读文件",
-      "cmds": [
-        "读文件",
-        {
-          "type": "files",
-          "fileType": "file",
-          "maxLength": 1,
-          "label": "读文件"
-        }
-      ]
+      "code": "vault-list",
+      "explain": "查看所有1Password保险库",
+      "cmds": ["1Password保险库", "保险库", "1p保险库"]
     },
     {
-      "code": "write",
-      "explain": "匹配指令示例，使用 node.js 能力写文件",
-      "mainHide": true,
-      "cmds": [
-        {
-          "type": "over",
-          "label": "保存为文件"
-        },
-        {
-          "type": "img",
-          "label": "保存为文件"
-        }
-      ]
+      "code": "generate-password",
+      "explain": "使用1Password生成随机密码",
+      "cmds": ["生成密码", "随机密码", "1p生成密码"]
     }
   ]
 }
