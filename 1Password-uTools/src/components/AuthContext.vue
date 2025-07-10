@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, provide, ref } from 'vue'
+import { computed, onMounted, provide, ref } from 'vue'
 import {
   CommandLineMissingError,
   ZSH_PATH,
@@ -17,6 +17,14 @@ const zshMissing = ref(!checkZsh())
 const accountSelected = ref(true)
 const errorMessage = ref('')
 const accounts = useAccounts()
+
+// 添加计算属性处理账户数据
+const accountsList = computed(() => {
+  if (Array.isArray(accounts.data)) {
+    return accounts.data
+  }
+  return []
+})
 
 const emit = defineEmits(['authenticated'])
 
@@ -88,12 +96,12 @@ onMounted(async () => {
     </div>
     <div v-else class="accounts-list">
       <div
-        v-for="(account, index) in accounts.data"
-        :key="account?.account_uuid || index"
+        v-for="(account, index) in accountsList"
+        :key="index"
         class="account-item"
-        @click="onAccountSelect(account?.account_uuid)"
+        @click="account.account_uuid && onAccountSelect(account.account_uuid)"
       >
-        {{ account?.url }} - {{ account?.email }}
+        {{ account.url }} - {{ account.email }}
       </div>
     </div>
   </div>

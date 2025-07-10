@@ -1,7 +1,16 @@
 import { execFileSync, execSync } from 'child_process'
 import { existsSync } from 'fs'
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { ActionID, AppPreferences, Category, CategoryName, Item, User, Vault } from './types'
+
+// 定义 useOp 返回类型接口
+interface UseOpReturn<T> {
+  data: Ref<T | null>
+  error: Ref<Error | null>
+  isLoading: Ref<boolean>
+  refresh: () => void
+}
 
 // Default preferences
 const defaultPreferences: AppPreferences = {
@@ -147,12 +156,13 @@ export function getSignInStatus() {
     execSync(`${getCliPath()} whoami`)
     return true
   } catch (stderr) {
+    console.log(`[LOG] → getSignInStatus → stderr`, stderr)
     return false
   }
 }
 
 // Vue composable for fetching data
-export function useOp<T>(args: string[], callback?: (data: T) => T) {
+export function useOp<T>(args: string[], callback?: (data: T) => T): UseOpReturn<T> {
   const data = ref<T | null>(null)
   const error = ref<Error | null>(null)
   const isLoading = ref(true)
@@ -185,7 +195,7 @@ export function useOp<T>(args: string[], callback?: (data: T) => T) {
     error,
     isLoading,
     refresh: fetchData,
-  }
+  } as UseOpReturn<T>
 }
 
 export function usePasswords(flags: string[] = []) {
@@ -210,7 +220,12 @@ export function useAccount() {
   return useOp<User>(['whoami'])
 }
 
-export function useAccounts() {
+export function useAccounts(): {
+  data: Ref<User[] | null>
+  error: Ref<Error | null>
+  isLoading: Ref<boolean>
+  refresh: () => void
+} {
   const data = ref<User[] | null>(null)
   const error = ref<Error | null>(null)
   const isLoading = ref(true)
@@ -224,7 +239,7 @@ export function useAccounts() {
       const result = execFileSync(cliPath, ['account', 'list', '--format=json'], {
         encoding: 'utf-8',
       })
-      data.value = JSON.parse(result)
+      data.value = JSON.parse(result) as User[]
     } catch (err) {
       if (err instanceof Error) {
         handleErrors(err.message)
