@@ -25,6 +25,10 @@
 - 在 uTools 中输入 `1Password保险库` 或 `保险库` 来查看所有保险库
 - 在 uTools 中输入 `生成密码` 或 `随机密码` 来生成新的随机密码
 
+## 源码
+
+> [https://github.com/MrLeo/1Password-uTools.git](https://github.com/MrLeo/1Password-uTools.git "https://github.com/MrLeo/1Password-uTools.git")
+
 ## 开发
 
 ```bash
