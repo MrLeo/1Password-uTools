@@ -9,7 +9,7 @@ const appStore = useAppStore()
   <header>
     <div class="wrapper">
       <nav>
-        <RouterLink to="/">首页</RouterLink>
+        <!-- <RouterLink to="/">首页</RouterLink> -->
         <RouterLink to="/item-list">密码项目</RouterLink>
         <RouterLink to="/vault-list">保险库</RouterLink>
         <RouterLink to="/generate-password">生成密码</RouterLink>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { Item } from '../../types'
 import { getCliPath } from '../../utils'
 
 const password = ref('')
@@ -18,32 +19,27 @@ const generatePassword = () => {
   error.value = ''
 
   try {
-    const cliPath = getCliPath()
-    const args = ['item', 'template', 'get', 'Password', '--fields', 'password']
-
-    // Add options
-    if (length.value) {
-      args.push('--length', length.value.toString())
-    }
-
-    if (!useDigits.value) {
-      args.push('--no-digits')
-    }
-
-    if (!useSymbols.value) {
-      args.push('--no-symbols')
-    }
-
-    if (!useLowercase.value) {
-      args.push('--no-letters')
-    }
-
-    if (!useUppercase.value) {
-      args.push('--no-uppercase')
-    }
-
-    const result = window.node.child_process.execFileSync(cliPath, args, { encoding: 'utf-8' })
-    password.value = result.trim()
+    const args = ['letters', length.value]
+    if (useDigits.value) args.push('digits')
+    if (useSymbols.value) args.push('symbols')
+    // https://1password.community/discussion/139189/feature-request-generate-random-passwords-with-cli-via-dedicated-command-e-g-op-generate
+    const result = window.node.child_process.execFileSync(getCliPath(), [
+      'item',
+      'create',
+      '--dry-run',
+      '--category',
+      'Password',
+      `--generate-password=${args.join(',')}`,
+      '--format',
+      'json',
+    ])
+    const item: Item = JSON.parse(result.toString())
+    password.value =
+      item.fields
+        ?.filter((field) => field.id === 'password')
+        .filter(Boolean)
+        .map((v) => v.value)
+        .at(0) || 'ERROR'
   } catch (err) {
     if (err instanceof Error) {
       error.value = err.message
