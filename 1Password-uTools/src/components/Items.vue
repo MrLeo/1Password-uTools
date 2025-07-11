@@ -10,7 +10,7 @@ const props = defineProps<{
 }>()
 
 const { data: account } = useAccount()
-const { data: passwords, isLoading, error } = usePasswords()
+const { data: passwords, isLoading: passwordsIsLoading, error: passwordsError } = usePasswords()
 
 const filteredItems = computed(() => {
   if (!passwords.value || !Array.isArray(passwords.value)) {
@@ -110,9 +110,9 @@ const getActionLabel = (action: string) => {
       <span class="items-count">{{ filteredItems.length }}</span>
     </div>
 
-    <div v-if="isLoading" class="loading">加载项目中...</div>
-    <div v-else-if="error" class="error">
-      {{ error instanceof Error ? error.message : String(error) }}
+    <div v-if="passwordsIsLoading" class="loading">加载项目中...</div>
+    <div v-else-if="passwordsError" class="error">
+      {{ passwordsError instanceof Error ? passwordsError.message : String(passwordsError) }}
     </div>
     <div v-else-if="filteredItems.length === 0" class="empty-view">
       <p>没有找到项目</p>

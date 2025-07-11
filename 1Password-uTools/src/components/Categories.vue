@@ -11,12 +11,12 @@ const props = defineProps<{
 
 const emit = defineEmits(['categoryChange'])
 
-const { data, isLoading, error } = useCategories()
+const { data: categories, isLoading: categoriesIsLoading, error: categoriesError } = useCategories()
 
 const categoriesList = computed(() => {
-  if (!data.value || !Array.isArray(data.value)) return [DEFAULT_CATEGORY]
+  if (!categories.value || !Array.isArray(categories.value)) return [DEFAULT_CATEGORY]
 
-  const categoryNames = data.value.map((category: Category) => {
+  const categoryNames = categories.value.map((category: Category) => {
     const name = category.name.toLowerCase().replace(/_/g, ' ')
     return capitalizeWords(name)
   })
@@ -34,9 +34,9 @@ const onCategorySelect = (category: string) => {
     <div class="categories-header">
       <h3>分类</h3>
     </div>
-    <div v-if="isLoading" class="loading">加载分类中...</div>
-    <div v-else-if="error" class="error">
-      {{ error instanceof Error ? error.message : String(error) }}
+    <div v-if="categoriesIsLoading" class="loading">加载分类中...</div>
+    <div v-else-if="categoriesError" class="error">
+      {{ categoriesError instanceof Error ? categoriesError.message : String(categoriesError) }}
     </div>
     <div v-else class="categories-list">
       <div

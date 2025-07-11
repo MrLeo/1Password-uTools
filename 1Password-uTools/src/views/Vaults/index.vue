@@ -4,8 +4,8 @@ import AuthContext from '../../components/AuthContext.vue'
 import { usePasswords, useVaults } from '../../hooks'
 import type { Item, Vault } from '../../types'
 
-const { data: vaultsData, isLoading: vaultsIsLoading, error: vaultsError } = useVaults()
-const { data: passwordsData, isLoading: passwordsIsLoading, error: passwordsError } = usePasswords()
+const { data: vaults, isLoading: vaultsIsLoading, error: vaultsError } = useVaults()
+const { data: passwords, isLoading: passwordsIsLoading, error: passwordsError } = usePasswords()
 
 const selectedVault = ref<Vault | null>(null)
 
@@ -21,19 +21,19 @@ const clearSelection = () => {
 const filteredItems = ref<Item[]>([])
 
 const updateFilteredItems = () => {
-  if (!selectedVault.value || !passwordsData.value || !Array.isArray(passwordsData.value)) {
+  if (!selectedVault.value || !passwords.value || !Array.isArray(passwords.value)) {
     filteredItems.value = []
     return
   }
 
-  filteredItems.value = (passwordsData.value as Item[]).filter(
+  filteredItems.value = (passwords.value as Item[]).filter(
     (item: Item) => item.vault.id === selectedVault.value?.id,
   )
 }
 
 // Watch for changes in selected vault or passwords data
 watch(
-  [() => selectedVault.value, () => passwordsData.value],
+  [() => selectedVault.value, () => passwords.value],
   () => {
     updateFilteredItems()
   },
@@ -73,14 +73,14 @@ watch(
           {{ vaultsError instanceof Error ? vaultsError.message : String(vaultsError) }}
         </div>
         <div
-          v-else-if="!vaultsData || !Array.isArray(vaultsData) || vaultsData.length === 0"
+          v-else-if="!vaults || !Array.isArray(vaults) || vaults.length === 0"
           class="empty-view"
         >
           <p>没有找到保险库</p>
         </div>
         <div v-else class="vault-cards">
           <div
-            v-for="vault in vaultsData"
+            v-for="vault in vaults"
             :key="vault.id"
             class="vault-card"
             @click="selectVault(vault as Vault)"

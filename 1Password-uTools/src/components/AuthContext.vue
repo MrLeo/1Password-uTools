@@ -16,12 +16,12 @@ const isAuthenticated = ref(false)
 const zshMissing = ref(!checkZsh())
 const accountSelected = ref(true)
 const errorMessage = ref('')
-const accounts = useAccounts()
+const { data: accounts, isLoading: accountsIsLoading, error: accountsError } = useAccounts()
 
 // 添加计算属性处理账户数据
 const accountsList = computed(() => {
-  if (Array.isArray(accounts.data)) {
-    return accounts.data
+  if (Array.isArray(accounts.value)) {
+    return accounts.value
   }
   return []
 })
@@ -90,9 +90,9 @@ onMounted(async () => {
 <template>
   <div v-if="!accountSelected" class="account-selector">
     <h2>选择账户</h2>
-    <div v-if="accounts.isLoading" class="loading">加载账户中...</div>
-    <div v-else-if="accounts.error" class="error">
-      {{ accounts.error instanceof Error ? accounts.error.message : String(accounts.error) }}
+    <div v-if="accountsIsLoading" class="loading">加载账户中...</div>
+    <div v-else-if="accountsError" class="error">
+      {{ accountsError instanceof Error ? accountsError.message : String(accountsError) }}
     </div>
     <div v-else class="accounts-list">
       <div

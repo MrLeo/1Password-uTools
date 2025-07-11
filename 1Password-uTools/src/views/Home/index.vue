@@ -1,7 +1,11 @@
 <script lang="ts" setup>
+import { useRouter } from 'vue-router'
 import { useAppStore } from '../../stores/app'
 
 const appStore = useAppStore()
+
+const router = useRouter()
+router.replace({ path: '/item-list' })
 </script>
 
 <template>
