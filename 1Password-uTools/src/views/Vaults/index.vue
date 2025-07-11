@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import AuthContext from '../../components/AuthContext.vue'
+import { usePasswords, useVaults } from '../../hooks'
 import type { Item, Vault } from '../../types'
-import { usePasswords, useVaults } from '../../utils'
 
-const vaults = useVaults()
-const passwords = usePasswords()
+const { data: vaultsData, isLoading: vaultsIsLoading, error: vaultsError } = useVaults()
+const { data: passwordsData, isLoading: passwordsIsLoading, error: passwordsError } = usePasswords()
 
 const selectedVault = ref<Vault | null>(null)
 
@@ -21,19 +21,19 @@ const clearSelection = () => {
 const filteredItems = ref<Item[]>([])
 
 const updateFilteredItems = () => {
-  if (!selectedVault.value || !passwords.data || !Array.isArray(passwords.data)) {
+  if (!selectedVault.value || !passwordsData.value || !Array.isArray(passwordsData.value)) {
     filteredItems.value = []
     return
   }
 
-  filteredItems.value = (passwords.data as Item[]).filter(
+  filteredItems.value = (passwordsData.value as Item[]).filter(
     (item: Item) => item.vault.id === selectedVault.value?.id,
   )
 }
 
 // Watch for changes in selected vault or passwords data
 watch(
-  [() => selectedVault.value, () => passwords.data],
+  [() => selectedVault.value, () => passwordsData.value],
   () => {
     updateFilteredItems()
   },
@@ -51,7 +51,7 @@ watch(
           <span class="items-count">{{ filteredItems.length }}</span>
         </div>
 
-        <div v-if="passwords.isLoading" class="loading">加载项目中...</div>
+        <div v-if="passwordsIsLoading" class="loading">加载项目中...</div>
         <div v-else-if="filteredItems.length === 0" class="empty-view">
           <p>此保险库中没有项目</p>
         </div>
@@ -68,19 +68,19 @@ watch(
       <div v-else class="vaults-list">
         <h2>保险库</h2>
 
-        <div v-if="vaults.isLoading" class="loading">加载保险库中...</div>
-        <div v-else-if="vaults.error" class="error">
-          {{ vaults.error instanceof Error ? vaults.error.message : String(vaults.error) }}
+        <div v-if="vaultsIsLoading" class="loading">加载保险库中...</div>
+        <div v-else-if="vaultsError" class="error">
+          {{ vaultsError instanceof Error ? vaultsError.message : String(vaultsError) }}
         </div>
         <div
-          v-else-if="!vaults.data || !Array.isArray(vaults.data) || vaults.data.length === 0"
+          v-else-if="!vaultsData || !Array.isArray(vaultsData) || vaultsData.length === 0"
           class="empty-view"
         >
           <p>没有找到保险库</p>
         </div>
         <div v-else class="vault-cards">
           <div
-            v-for="vault in vaults.data"
+            v-for="vault in vaultsData"
             :key="vault.id"
             class="vault-card"
             @click="selectVault(vault as Vault)"

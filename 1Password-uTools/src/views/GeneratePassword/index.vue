@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { execFileSync } from 'child_process'
 import { ref } from 'vue'
 import { getCliPath } from '../../utils'
 
@@ -43,7 +42,7 @@ const generatePassword = () => {
       args.push('--no-uppercase')
     }
 
-    const result = execFileSync(cliPath, args, { encoding: 'utf-8' })
+    const result = window.node.child_process.execFileSync(cliPath, args, { encoding: 'utf-8' })
     password.value = result.trim()
   } catch (err) {
     if (err instanceof Error) {

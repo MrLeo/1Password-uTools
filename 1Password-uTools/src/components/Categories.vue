@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import { DEFAULT_CATEGORY } from '../const'
+import { useCategories } from '../hooks'
 import type { Category } from '../types'
-import { capitalizeWords, useCategories } from '../utils'
+import { capitalizeWords } from '../utils'
 
 const props = defineProps<{
   selectedCategory: string
@@ -10,24 +11,18 @@ const props = defineProps<{
 
 const emit = defineEmits(['categoryChange'])
 
-const categories = useCategories()
-const categoriesList = ref<string[]>([DEFAULT_CATEGORY])
+const { data, isLoading, error } = useCategories()
 
-// 使用 watch 监听 categories.data 的变化
-watch(
-  () => categories.data,
-  (newData) => {
-    if (newData && Array.isArray(newData)) {
-      const categoryNames = newData.map((category: Category) => {
-        const name = category.name.toLowerCase().replace(/_/g, ' ')
-        return capitalizeWords(name)
-      })
+const categoriesList = computed(() => {
+  if (!data.value || !Array.isArray(data.value)) return [DEFAULT_CATEGORY]
 
-      categoriesList.value = [DEFAULT_CATEGORY, ...categoryNames.sort()]
-    }
-  },
-  { immediate: true },
-)
+  const categoryNames = data.value.map((category: Category) => {
+    const name = category.name.toLowerCase().replace(/_/g, ' ')
+    return capitalizeWords(name)
+  })
+
+  return [DEFAULT_CATEGORY, ...categoryNames.sort()]
+})
 
 const onCategorySelect = (category: string) => {
   emit('categoryChange', category)
@@ -39,9 +34,9 @@ const onCategorySelect = (category: string) => {
     <div class="categories-header">
       <h3>分类</h3>
     </div>
-    <div v-if="categories.isLoading" class="loading">加载分类中...</div>
-    <div v-else-if="categories.error" class="error">
-      {{ categories.error instanceof Error ? categories.error.message : String(categories.error) }}
+    <div v-if="isLoading" class="loading">加载分类中...</div>
+    <div v-else-if="error" class="error">
+      {{ error instanceof Error ? error.message : String(error) }}
     </div>
     <div v-else class="categories-list">
       <div

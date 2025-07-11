@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, ref } from 'vue'
+import { useAccounts } from '../hooks'
 import {
   CommandLineMissingError,
   ZSH_PATH,
@@ -9,7 +10,6 @@ import {
   getCliPath,
   getSignInStatus,
   signIn,
-  useAccounts,
 } from '../utils'
 
 const isAuthenticated = ref(false)

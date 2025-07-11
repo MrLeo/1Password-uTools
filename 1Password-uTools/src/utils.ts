@@ -1,16 +1,4 @@
-import { execFileSync, execSync } from 'child_process'
-import { existsSync } from 'fs'
-import type { Ref } from 'vue'
-import { ref } from 'vue'
-import type { ActionID, AppPreferences, Category, CategoryName, Item, User, Vault } from './types'
-
-// 定义 useOp 返回类型接口
-interface UseOpReturn<T> {
-  data: Ref<T | null>
-  error: Ref<Error | null>
-  isLoading: Ref<boolean>
-  refresh: () => void
-}
+import type { ActionID, AppPreferences, CategoryName, Item } from './types'
 
 // Default preferences
 const defaultPreferences: AppPreferences = {
@@ -57,9 +45,11 @@ export class ZshMissingError extends ExtensionError {}
 export class ConnectionError extends ExtensionError {}
 
 export function getCliPath() {
-  const cliPath = [preferences.cliPath, '/usr/local/bin/op', '/opt/homebrew/bin/op']
-    .filter(Boolean)
-    .find((path) => (path ? existsSync(path) : false))
+  const cliPath = window.onePassword.getCliPath([
+    preferences.cliPath,
+    '/usr/local/bin/op',
+    '/opt/homebrew/bin/op',
+  ])
 
   if (!cliPath) {
     throw new CommandLineMissingError(
@@ -69,7 +59,7 @@ export function getCliPath() {
   return cliPath
 }
 
-export const ZSH_PATH = [preferences.zshPath, '/bin/zsh'].find((path) => path && existsSync(path))
+export const ZSH_PATH = window.onePassword.getCliPath([preferences.zshPath, '/bin/zsh'])
 
 export const errorRegex = new RegExp(/\[\w+\]\s+\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}\s+(.*)$/m)
 
@@ -118,8 +108,12 @@ export function actionsForItem(item: Item): ActionID[] {
 export function op(args: string[]) {
   const cliPath = getCliPath()
   if (cliPath) {
-    const stdout = execFileSync(cliPath, args, { maxBuffer: 4096 * 1024 })
-    return stdout.toString()
+    const result = window.onePassword.executeOp(cliPath, args)
+    if (result.success) {
+      return result.data
+    } else {
+      throw new Error(result.error)
+    }
   }
   throw Error('1Password CLI is not found!')
 }
@@ -141,124 +135,26 @@ export function handleErrors(stderr: string) {
 }
 
 export function checkZsh() {
-  if (!ZSH_PATH) {
-    return false
-  }
-  return true
+  return !!ZSH_PATH
 }
 
 export function signIn(account?: string) {
-  return execSync(`${getCliPath()} signin ${account ? account : ''}`, { shell: ZSH_PATH })
+  const cliPath = getCliPath()
+  const result = window.onePassword.signIn(cliPath, account, ZSH_PATH)
+  if (result.success) {
+    return result.data
+  } else {
+    throw new Error(result.error)
+  }
 }
 
 export function getSignInStatus() {
   try {
-    execSync(`${getCliPath()} whoami`)
-    return true
+    const cliPath = getCliPath()
+    return window.onePassword.checkSignInStatus(cliPath)
   } catch (stderr) {
     console.log(`[LOG] → getSignInStatus → stderr`, stderr)
     return false
-  }
-}
-
-// Vue composable for fetching data
-export function useOp<T>(args: string[], callback?: (data: T) => T): UseOpReturn<T> {
-  const data = ref<T | null>(null)
-  const error = ref<Error | null>(null)
-  const isLoading = ref(true)
-
-  const fetchData = async () => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const cliPath = getCliPath()
-      const result = execFileSync(cliPath, [...args, '--format=json'], { encoding: 'utf-8' })
-      const parsedData = JSON.parse(result) as T
-      data.value = callback ? callback(parsedData) : parsedData
-    } catch (err) {
-      if (err instanceof Error) {
-        handleErrors(err.message)
-        error.value = err
-      } else {
-        error.value = new Error(String(err))
-      }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  fetchData()
-
-  return {
-    data,
-    error,
-    isLoading,
-    refresh: fetchData,
-  } as UseOpReturn<T>
-}
-
-export function usePasswords(flags: string[] = []) {
-  return useOp<Item[]>(['items', 'list', '--long', ...flags], (data) =>
-    data.sort((a, b) => a.title.localeCompare(b.title)),
-  )
-}
-
-export function useVaults() {
-  return useOp<Vault[]>(['vault', 'list'], (data) =>
-    data.sort((a, b) => a.name.localeCompare(b.name)),
-  )
-}
-
-export function useCategories() {
-  return useOp<Category[]>(['item', 'template', 'list'], (data) =>
-    data.sort((a, b) => a.name.localeCompare(b.name)),
-  )
-}
-
-export function useAccount() {
-  return useOp<User>(['whoami'])
-}
-
-export function useAccounts(): {
-  data: Ref<User[] | null>
-  error: Ref<Error | null>
-  isLoading: Ref<boolean>
-  refresh: () => void
-} {
-  const data = ref<User[] | null>(null)
-  const error = ref<Error | null>(null)
-  const isLoading = ref(true)
-
-  const fetchData = async () => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const cliPath = getCliPath()
-      const result = execFileSync(cliPath, ['account', 'list', '--format=json'], {
-        encoding: 'utf-8',
-      })
-      data.value = JSON.parse(result) as User[]
-    } catch (err) {
-      if (err instanceof Error) {
-        handleErrors(err.message)
-        error.value = err
-      } else {
-        error.value = new Error(String(err))
-      }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  fetchData()
-
-  return {
-    data,
-    error,
-    isLoading,
-    refresh: fetchData,
   }
 }
 

@@ -1,69 +1,105 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, reactive } from 'vue'
 import { DEFAULT_CATEGORY } from '../const'
+import { useAccount, usePasswords } from '../hooks'
 import type { Item } from '../types'
-import { actionsForItem, getCategoryIcon, usePasswords } from '../utils'
+import { actionsForItem, getCategoryIcon, getCliPath } from '../utils'
 
 const props = defineProps<{
   selectedCategory: string
 }>()
 
-const passwords = usePasswords()
-const filteredItems = ref<Item[]>([])
+const { data: account } = useAccount()
+const { data: passwords, isLoading, error } = usePasswords()
 
-// Filter items based on selected category
-watch(
-  [() => passwords.data, () => props.selectedCategory],
-  ([items, category]) => {
-    if (!items || !Array.isArray(items)) {
-      filteredItems.value = []
-      return
-    }
-
-    if (category === DEFAULT_CATEGORY) {
-      filteredItems.value = items as Item[]
-    } else {
-      const categoryKey = category.toUpperCase().replace(/ /g, '_')
-      filteredItems.value = (items as Item[]).filter((item) => item.category === categoryKey)
-    }
-  },
-  { immediate: true },
-)
-
-// Handle item actions
-const handleItemAction = (item: Item, action: string) => {
-  switch (action) {
-    case 'open-in-1password':
-      window.utools.shellOpenExternal(`op://${item.vault.id}/${item.id}`)
-      break
-    case 'open-in-browser':
-      const url = item.urls?.find((u) => u.primary)?.href
-      if (url) {
-        window.utools.shellOpenExternal(url)
-      }
-      break
-    case 'copy-username':
-      const username = item.fields?.find((f) => f.type === 'username')?.value
-      if (username) {
-        window.utools.copyText(username)
-        window.utools.showNotification('用户名已复制到剪贴板')
-      }
-      break
-    case 'copy-password':
-      const password = item.fields?.find((f) => f.type === 'password')?.value
-      if (password) {
-        window.utools.copyText(password)
-        window.utools.showNotification('密码已复制到剪贴板')
-      }
-      break
-    case 'copy-one-time-password':
-      const otp = item.fields?.find((f) => f.type === 'otp')?.value
-      if (otp) {
-        window.utools.copyText(otp)
-        window.utools.showNotification('一次性密码已复制到剪贴板')
-      }
-      break
+const filteredItems = computed(() => {
+  if (!passwords.value || !Array.isArray(passwords.value)) {
+    return []
   }
+
+  if (props.selectedCategory === DEFAULT_CATEGORY) {
+    return passwords.value as Item[]
+  } else {
+    const categoryKey = props.selectedCategory.toUpperCase().replace(/ /g, '_')
+    return (passwords.value as Item[]).filter((item) => item.category === categoryKey)
+  }
+})
+
+const actionLabels: Record<string, string> = {
+  'open-in-1password': '在1Password中打开',
+  'open-in-browser': '在浏览器中打开',
+  'copy-username': '复制用户名',
+  'copy-password': '复制密码',
+  'copy-one-time-password': '复制一次性密码',
+}
+
+const loading = reactive<Record<string, boolean>>({
+  'open-in-1password': false,
+  'open-in-browser': false,
+  'copy-username': false,
+  'copy-password': false,
+  'copy-one-time-password': false,
+})
+
+const actionStrategies: Record<string, (item: Item) => void> = {
+  'open-in-1password': (item: Item) => {
+    loading['open-in-1password'] = true
+    const url = `onepassword://view-item/?a=${account.value?.account_uuid}&v=${item.vault.id}&i=${item.id}`
+    window.utools.shellOpenExternal(url)
+    loading['open-in-1password'] = false
+  },
+  'open-in-browser': (item: Item) => {
+    loading['open-in-browser'] = true
+    const url = item.category === 'LOGIN' ? item.urls?.find((u) => u.primary)?.href : undefined
+    url && window.utools.shellOpenExternal(url)
+    loading['open-in-browser'] = false
+  },
+  'copy-username': (item: Item) => {
+    loading['copy-username'] = true
+    const uri = `op://${item.vault.id}/${item.id}/username`
+    const username = window.node.child_process.execFileSync(getCliPath(), ['read', uri])
+    if (username) {
+      window.utools.copyText(username.toString().trim())
+      window.utools.showNotification('用户名已复制到剪贴板')
+    }
+    loading['copy-username'] = false
+  },
+  'copy-password': (item: Item) => {
+    loading['copy-password'] = true
+    const uri = `op://${item.vault.id}/${item.id}/password`
+    const password = window.node.child_process.execFileSync(getCliPath(), ['read', uri])
+    if (password) {
+      window.utools.copyText(password.toString().trim())
+      window.utools.showNotification('密码已复制到剪贴板')
+    }
+    loading['copy-password'] = false
+  },
+  'copy-one-time-password': (item: Item) => {
+    loading['copy-one-time-password'] = true
+    const otp = window.node.child_process.execFileSync(getCliPath(), [
+      'item',
+      'get',
+      item.id,
+      '--otp',
+    ])
+    if (otp) {
+      window.utools.copyText(otp.toString().trim())
+      window.utools.showNotification('一次性密码已复制到剪贴板')
+    }
+    loading['copy-one-time-password'] = false
+  },
+}
+
+const handleItemAction = (item: Item, action: string) => {
+  console.log(`[LOG] → handleItemAction → item`, JSON.stringify(item, null, 2))
+  const strategy = actionStrategies[action]
+  if (strategy) {
+    strategy(item)
+  }
+}
+
+const getActionLabel = (action: string) => {
+  return actionLabels[action] || action
 }
 </script>
 
@@ -74,9 +110,9 @@ const handleItemAction = (item: Item, action: string) => {
       <span class="items-count">{{ filteredItems.length }}</span>
     </div>
 
-    <div v-if="passwords.isLoading" class="loading">加载项目中...</div>
-    <div v-else-if="passwords.error" class="error">
-      {{ passwords.error instanceof Error ? passwords.error.message : String(passwords.error) }}
+    <div v-if="isLoading" class="loading">加载项目中...</div>
+    <div v-else-if="error" class="error">
+      {{ error instanceof Error ? error.message : String(error) }}
     </div>
     <div v-else-if="filteredItems.length === 0" class="empty-view">
       <p>没有找到项目</p>
@@ -106,19 +142,8 @@ const handleItemAction = (item: Item, action: string) => {
             class="action-button"
             @click="handleItemAction(item, action)"
           >
-            {{
-              action === 'open-in-1password'
-                ? '在1Password中打开'
-                : action === 'open-in-browser'
-                  ? '在浏览器中打开'
-                  : action === 'copy-username'
-                    ? '复制用户名'
-                    : action === 'copy-password'
-                      ? '复制密码'
-                      : action === 'copy-one-time-password'
-                        ? '复制一次性密码'
-                        : action
-            }}
+            {{ getActionLabel(action) }}
+            <span v-if="loading[action]">...</span>
           </button>
         </div>
       </div>
@@ -237,7 +262,7 @@ const handleItemAction = (item: Item, action: string) => {
 
 .action-button {
   padding: 6px 12px;
-  background-color: #f5f5f5;
+  background-color: #083de9;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -246,7 +271,7 @@ const handleItemAction = (item: Item, action: string) => {
 }
 
 .action-button:hover {
-  background-color: #e0e0e0;
+  background-color: #0631bc;
 }
 
 .icon {
