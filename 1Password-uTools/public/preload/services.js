@@ -6,7 +6,7 @@ const { execFileSync, execSync } = require('node:child_process')
 /**
  * 通过 window 对象向渲染进程注入 nodejs 能力
  */
-window.node = {
+window.$node = {
   fs,
   path,
   child_process,
@@ -15,7 +15,7 @@ window.node = {
 /**
  * 1Password CLI 相关服务
  */
-window.onePassword = {
+window.$onePassword = {
   // 检查文件路径是否存在
   checkPathExists(filePath) {
     return fs.existsSync(filePath)

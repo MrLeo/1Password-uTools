@@ -22,7 +22,7 @@ export function useOp<T>(args: string[], callback?: (data: T) => T): UseOpReturn
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.executeOp(cliPath, [...args, '--format=json'], {
+      const result = window.$onePassword.executeOp(cliPath, [...args, '--format=json'], {
         encoding: 'utf-8',
       })
       if (result.success) {
@@ -65,7 +65,7 @@ export function usePasswords(flags: string[] = []) {
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.getPasswords(cliPath, flags)
+      const result = window.$onePassword.getPasswords(cliPath, flags)
       if (result.success) {
         data.value = result.data.sort((a: Item, b: Item) => a.title.localeCompare(b.title))
       } else {
@@ -105,7 +105,7 @@ export function useVaults() {
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.getVaults(cliPath)
+      const result = window.$onePassword.getVaults(cliPath)
       if (result.success) {
         data.value = result.data.sort((a: Vault, b: Vault) => a.name.localeCompare(b.name))
       } else {
@@ -145,7 +145,7 @@ export function useCategories() {
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.getCategories(cliPath)
+      const result = window.$onePassword.getCategories(cliPath)
       if (result.success) {
         data.value = result.data.sort((a: Category, b: Category) => a.name.localeCompare(b.name))
       } else {
@@ -185,7 +185,7 @@ export function useAccount() {
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.getAccount(cliPath)
+      const result = window.$onePassword.getAccount(cliPath)
       if (result.success) {
         data.value = result.data
       } else {
@@ -230,7 +230,7 @@ export function useAccounts(): {
 
     try {
       const cliPath = getCliPath()
-      const result = window.onePassword.getAccounts(cliPath)
+      const result = window.$onePassword.getAccounts(cliPath)
       if (result.success) {
         data.value = result.data
       } else {

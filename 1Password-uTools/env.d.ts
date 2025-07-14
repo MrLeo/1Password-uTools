@@ -6,12 +6,12 @@ import type { Category, Item, User, Vault } from './src/types'
 declare global {
   interface Window {
     utools: UToolsApi
-    node: {
+    $node: {
       fs: typeof import('node:fs')
       path: typeof import('node:path')
       child_process: typeof import('node:child_process')
     }
-    onePassword: OnePassword
+    $onePassword: OnePassword
   }
 }
 

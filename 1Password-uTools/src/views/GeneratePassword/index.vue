@@ -23,7 +23,7 @@ const generatePassword = () => {
     if (useDigits.value) args.push('digits')
     if (useSymbols.value) args.push('symbols')
     // https://1password.community/discussion/139189/feature-request-generate-random-passwords-with-cli-via-dedicated-command-e-g-op-generate
-    const result = window.node.child_process.execFileSync(getCliPath(), [
+    const result = window.$node.child_process.execFileSync(getCliPath(), [
       'item',
       'create',
       '--dry-run',

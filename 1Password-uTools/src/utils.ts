@@ -45,7 +45,7 @@ export class ZshMissingError extends ExtensionError {}
 export class ConnectionError extends ExtensionError {}
 
 export function getCliPath() {
-  const cliPath = window.onePassword.getCliPath([
+  const cliPath = window.$onePassword.getCliPath([
     preferences.cliPath,
     '/usr/local/bin/op',
     '/opt/homebrew/bin/op',
@@ -59,7 +59,7 @@ export function getCliPath() {
   return cliPath
 }
 
-export const ZSH_PATH = window.onePassword.getCliPath([preferences.zshPath, '/bin/zsh'])
+export const ZSH_PATH = window.$onePassword.getCliPath([preferences.zshPath, '/bin/zsh'])
 
 export const errorRegex = new RegExp(/\[\w+\]\s+\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}\s+(.*)$/m)
 
@@ -108,7 +108,7 @@ export function actionsForItem(item: Item): ActionID[] {
 export function op(args: string[]) {
   const cliPath = getCliPath()
   if (cliPath) {
-    const result = window.onePassword.executeOp(cliPath, args)
+    const result = window.$onePassword.executeOp(cliPath, args)
     if (result.success) {
       return result.data
     } else {
@@ -140,7 +140,7 @@ export function checkZsh() {
 
 export function signIn(account?: string) {
   const cliPath = getCliPath()
-  const result = window.onePassword.signIn(cliPath, account, ZSH_PATH)
+  const result = window.$onePassword.signIn(cliPath, account, ZSH_PATH)
   if (result.success) {
     return result.data
   } else {
@@ -151,7 +151,7 @@ export function signIn(account?: string) {
 export function getSignInStatus() {
   try {
     const cliPath = getCliPath()
-    return window.onePassword.checkSignInStatus(cliPath)
+    return window.$onePassword.checkSignInStatus(cliPath)
   } catch (stderr) {
     console.log(`[LOG] → getSignInStatus → stderr`, stderr)
     return false

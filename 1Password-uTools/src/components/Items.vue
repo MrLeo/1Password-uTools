@@ -57,7 +57,7 @@ const actionStrategies: Record<string, (item: Item) => void> = {
   'copy-username': (item: Item) => {
     loading['copy-username'] = true
     const uri = `op://${item.vault.id}/${item.id}/username`
-    const username = window.node.child_process.execFileSync(getCliPath(), ['read', uri])
+    const username = window.$node.child_process.execFileSync(getCliPath(), ['read', uri])
     if (username) {
       window.utools.copyText(username.toString().trim())
       window.utools.showNotification('用户名已复制到剪贴板')
@@ -67,7 +67,7 @@ const actionStrategies: Record<string, (item: Item) => void> = {
   'copy-password': (item: Item) => {
     loading['copy-password'] = true
     const uri = `op://${item.vault.id}/${item.id}/password`
-    const password = window.node.child_process.execFileSync(getCliPath(), ['read', uri])
+    const password = window.$node.child_process.execFileSync(getCliPath(), ['read', uri])
     if (password) {
       window.utools.copyText(password.toString().trim())
       window.utools.showNotification('密码已复制到剪贴板')
@@ -76,7 +76,7 @@ const actionStrategies: Record<string, (item: Item) => void> = {
   },
   'copy-one-time-password': (item: Item) => {
     loading['copy-one-time-password'] = true
-    const otp = window.node.child_process.execFileSync(getCliPath(), [
+    const otp = window.$node.child_process.execFileSync(getCliPath(), [
       'item',
       'get',
       item.id,
