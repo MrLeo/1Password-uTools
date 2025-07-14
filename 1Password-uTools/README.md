@@ -1,6 +1,6 @@
 # 1Password uTools 插件
 
-这是一个基于 uTools 平台的 1Password 密码管理工具插件，参考了 1Password Raycast 插件的功能实现。
+这是一个基于 uTools 平台的 1Password 密码管理工具插件，依赖 1Password CLI，参考了 1Password Raycast 插件的功能实现。
 
 ## 功能
 
